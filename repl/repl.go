@@ -7,6 +7,7 @@ import (
 
 	"github.com/Samathingamajig/wacig-monkey/compiler"
 	"github.com/Samathingamajig/wacig-monkey/lexer"
+	"github.com/Samathingamajig/wacig-monkey/object"
 	"github.com/Samathingamajig/wacig-monkey/parser"
 	"github.com/Samathingamajig/wacig-monkey/vm"
 )
@@ -15,6 +16,10 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalsSize)
+	symbolTable := compiler.NewSymbolTable()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -33,14 +38,17 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Whoops! Compilation failed:\n %s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
+		code := comp.Bytecode()
+		constants = code.Constants
+
+		machine := vm.NewWithGlobalsStore(code, globals)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "Whoops! Executing bytecode failed:\n %s\n", err)

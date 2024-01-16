@@ -28,6 +28,13 @@ func New() *Compiler {
 	}
 }
 
+func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
+	compiler := New()
+	compiler.symbolTable = s
+	compiler.constants = constants
+	return compiler
+}
+
 type EmittedInstruction struct {
 	Opcode   code.Opcode
 	Position int
