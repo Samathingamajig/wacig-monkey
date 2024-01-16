@@ -13,6 +13,7 @@ const StackSize = 2048
 var (
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
+	NULL  = &object.Null{}
 )
 
 type VM struct {
@@ -105,6 +106,12 @@ func (vm *VM) Run() error {
 		case code.OpJump:
 			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
 			ip = pos - 1
+
+		case code.OpNull:
+			err := vm.push(NULL)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -243,8 +250,8 @@ func isTruthy(obj object.Object) bool {
 	switch obj {
 	case FALSE:
 		return false
-	// case NULL:
-	// 	return false
+	case NULL:
+		return false
 	case TRUE:
 		return true
 	default:
