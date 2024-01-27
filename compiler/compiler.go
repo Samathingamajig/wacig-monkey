@@ -115,6 +115,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 		compiledFn := &object.CompiledFunction{Instructions: instructions}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
+	case *ast.CallExpression:
+		err := c.Compile(node.Function)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpCall)
+
 	case *ast.HashLiteral:
 		keys := []ast.Expression{}
 		for k := range node.Pairs {
